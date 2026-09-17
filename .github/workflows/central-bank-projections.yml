@@ -39,6 +39,14 @@ jobs:
         continue-on-error: true
         run: python scripts/boe_mpr_scraper.py --out data/boe/boe_mpr.json
 
+      - name: Récupérer les fichiers de diagnostic (si échec)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-files
+          path: debug_*.html
+          if-no-files-found: ignore
+
       - name: Committer et pousser les résultats
         run: |
           git config user.name "github-actions[bot]"
