@@ -71,11 +71,11 @@ HEADERS = {
     )
 }
 
-# Lien vers un rapport, ex: href="/monetary-policy-report/2025/february-2025"
-# (on exclut les sous-pages comme .../february-2025/annex-... en exigeant que
-# le guillemet fermant suive immédiatement le mois-année).
+# Lien vers un rapport, ex: href="https://www.bankofengland.co.uk/monetary-policy-report/2025/february-2025"
+# (URL absolue sur cette page -- on exclut les sous-pages comme .../february-2025/annex-...
+# en exigeant que le guillemet fermant suive immédiatement le mois-année).
 REPORT_LINK_RE = re.compile(
-    r'href="(/monetary-policy-report/(\d{4})/([a-z]+-\d{4}))"'
+    r'href="(?:https?://www\.bankofengland\.co\.uk)?(/monetary-policy-report/(\d{4})/([a-z]+-\d{4}))"'
 )
 
 ROW_LABELS = [
