@@ -318,28 +318,30 @@ def _xlsx_autofit(ws, min_width=10, max_width=24) -> None:
         ws.column_dimensions[col_letter].width = min(max(length + 2, min_width), max_width)
 
 
-def _fmt_cell(var_data: dict, year: str) -> str:
-    vals = var_data.get(year)
-    if not vals:
+HORIZON_LABELS = ["Année en cours", "Année +1", "Année +2", "Année +3"]
+
+
+def _fmt_cell_horizon(var_data: dict, index: int) -> str:
+    """var_data est un dict {période: {value, prior}} dans l'ordre chronologique
+    (ordre d'insertion préservé depuis le parsing) -- on prend la valeur à la
+    position `index` (0 = année en cours, 1 = +1 an, etc.), quel que soit le
+    trimestre calendaire réel de cette position pour ce rapport, avec la
+    période effective rappelée entre crochets pour lever toute ambiguïté."""
+    items = list(var_data.items())
+    if index >= len(items):
         return ""
+    period, vals = items[index]
     value, prior = vals.get("value"), vals.get("prior")
-    return f"{value} ({prior})" if prior else (value or "")
+    if value is None:
+        return ""
+    body = f"{value} ({prior})" if prior else value
+    return f"[{period}] {body}"
 
 
 def write_xlsx(reports: list[BoeReport], out_path: Path) -> None:
     if not reports:
         return
     reports = sorted(reports, key=lambda r: r.date)
-
-    years: set = set()
-    for r in reports:
-        for var_data in r.table.values():
-            years.update(var_data.keys())
-    def _period_sort_key(period: str) -> tuple[int, int]:
-        y, q = period.split(" Q")
-        return int(y), int(q)
-
-    years_sorted = sorted(years, key=_period_sort_key)
 
     var_keys = [k for k, _ in ROW_LABELS]
 
@@ -353,16 +355,11 @@ def write_xlsx(reports: list[BoeReport], out_path: Path) -> None:
     col = 2
     for var_key in var_keys:
         start_col = col
-        for year in years_sorted:
-            c = ws.cell(row=2, column=col, value=year)
+        for horizon_label in HORIZON_LABELS:
+            c = ws.cell(row=2, column=col, value=horizon_label)
             _xlsx_style_header(c, _XLSX_SUBHEADER_FILL, _XLSX_SUBHEADER_FONT)
             col += 1
-        if col == start_col:
-            c = ws.cell(row=2, column=col, value="N/D")
-            _xlsx_style_header(c, _XLSX_SUBHEADER_FILL, _XLSX_SUBHEADER_FONT)
-            col += 1
-        if col - 1 > start_col:
-            ws.merge_cells(start_row=1, start_column=start_col, end_row=1, end_column=col - 1)
+        ws.merge_cells(start_row=1, start_column=start_col, end_row=1, end_column=col - 1)
         _xlsx_style_header(ws.cell(row=1, column=start_col, value=VAR_LABELS[var_key]),
                             _XLSX_HEADER_FILL, _XLSX_HEADER_FONT)
 
@@ -373,19 +370,26 @@ def write_xlsx(reports: list[BoeReport], out_path: Path) -> None:
         col = 2
         for var_key in var_keys:
             var_data = r.table.get(var_key, {})
-            for year in years_sorted:
-                c = ws.cell(row=row, column=col, value=_fmt_cell(var_data, year))
+            for i in range(len(HORIZON_LABELS)):
+                c = ws.cell(row=row, column=col, value=_fmt_cell_horizon(var_data, i))
                 c.font, c.border, c.alignment = _XLSX_CELL_FONT, _XLSX_BORDER, _XLSX_CENTER
                 col += 1
         row += 1
 
     ws.freeze_panes = "B3"
-    _xlsx_autofit(ws)
+    _xlsx_autofit(ws, max_width=26)
     note_row = row + 1
     ws.cell(row=note_row, column=1,
+            value="Colonnes alignées par horizon (année en cours, +1, +2, +3), pas par trimestre calendaire : "
+                  "chaque rapport MPR utilise un trimestre de référence différent selon son mois de publication "
+                  "(ex: rapport de février -> Q1, rapport de novembre -> Q4). Le trimestre exact de chaque valeur "
+                  "est rappelé entre crochets.")
+    ws.cell(row=note_row, column=1).font = Font(name=_XLSX_FONT_NAME, size=9, italic=True)
+    note_row2 = note_row + 1
+    ws.cell(row=note_row2, column=1,
             value="* Bank Rate : chemin implicite par les marchés sur lequel les projections sont conditionnées "
                   "(la BoE ne prévoit pas sa propre trajectoire de taux).")
-    ws.cell(row=note_row, column=1).font = Font(name=_XLSX_FONT_NAME, size=9, italic=True)
+    ws.cell(row=note_row2, column=1).font = Font(name=_XLSX_FONT_NAME, size=9, italic=True)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(out_path)
