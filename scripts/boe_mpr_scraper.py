@@ -95,11 +95,12 @@ ROW_LABELS = [
     ("bank_rate", "Bank Rate"),
 ]
 
-FRACTIONS = {"¼": "0.25", "½": "0.5", "¾": "0.75"}
+FRAC_SUFFIX = {"¼": "25", "½": "5", "¾": "75"}
 
-# Nombre : entier/décimal classique, ou fraction unicode, avec signe optionnel.
-_NUM_CORE = r"(?:\d+\.?\d*|[¼½¾])"
-NUM_RE = re.compile(rf"(-?{_NUM_CORE})(?:\s*\((-?{_NUM_CORE})\))?")
+# Nombre : décimal classique, entier+fraction accolée ("1¼" = 1.25), entier
+# seul, ou fraction seule ("¼"), avec signe + ou - optionnel.
+_NUM_CORE = r"(?:\d+\.\d+|\d+[¼½¾]|\d+|[¼½¾])"
+NUM_RE = re.compile(rf"([-+]?{_NUM_CORE})(?:\s*\(([-+]?{_NUM_CORE})\))?")
 YEAR_Q_RE = re.compile(r"\d{4}\s*Q[1-4]")
 
 
@@ -158,11 +159,20 @@ def discover_reports(cache_dir: Optional[Path] = None, min_period: str = MIN_SUP
 
 
 def _to_decimal(token: str) -> str:
-    """Convertit une fraction unicode (¼, ½, ¾), avec signe éventuel, en décimal."""
-    neg = token.startswith("-")
-    core = token[1:] if neg else token
-    dec = FRACTIONS.get(core, core)
-    return f"-{dec}" if neg else dec
+    """Convertit un nombre éventuellement signé (+/-) contenant une fraction
+    unicode (¼, ½, ¾), seule ou accolée à un entier ("1¼" = 1.25), en décimal."""
+    sign = ""
+    if token and token[0] in "+-":
+        sign = "-" if token[0] == "-" else ""
+        token = token[1:]
+
+    m = re.match(r"^(\d+)([¼½¾])$", token)
+    if m:
+        integer_part, frac = m.groups()
+        return f"{sign}{integer_part}.{FRAC_SUFFIX[frac]}"
+    if token in FRAC_SUFFIX:
+        return f"{sign}0.{FRAC_SUFFIX[token]}"
+    return f"{sign}{token}"
 
 
 def parse_table_1a(html: str) -> tuple[dict, list[str]]:
@@ -202,7 +212,10 @@ def parse_table_1a(html: str) -> tuple[dict, list[str]]:
     # Position de chaque libellé de ligne dans la section (pour découper les blocs de données)
     label_positions = []
     for key, label in ROW_LABELS:
-        pattern = re.compile(re.escape(label) + r"\s*(?:\([a-z]\))?")
+        # Insensible à la casse, et "unemployment rate" tolère un préfixe "LFS "
+        # utilisé dans les rapports plus anciens ("LFS unemployment rate").
+        label_pattern_str = r"(?:LFS\s+)?" + re.escape(label) if label == "Unemployment rate" else re.escape(label)
+        pattern = re.compile(label_pattern_str + r"\s*(?:\([a-z]\))?", re.I)
         m = pattern.search(section)
         if m:
             label_positions.append((key, m.start(), m.end()))
