@@ -39,21 +39,39 @@
           "prior": null
         }
       },
+      "unemployment_rate": {
+        "2022 Q2": {
+          "value": "3.6",
+          "prior": "3.9"
+        },
+        "2023 Q2": {
+          "value": "3.9",
+          "prior": "4.4"
+        },
+        "2024 Q2": {
+          "value": "4.6",
+          "prior": "4.7"
+        },
+        "2025 Q2": {
+          "value": "5.5",
+          "prior": null
+        }
+      },
       "output_gap": {
         "2022 Q2": {
           "value": "0.5",
           "prior": "0"
         },
         "2023 Q2": {
-          "value": "-1",
-          "prior": null
+          "value": "-1.25",
+          "prior": "-0.5"
         },
         "2024 Q2": {
-          "value": "0.25",
+          "value": "-1.75",
           "prior": "-0.5"
         },
         "2025 Q2": {
-          "value": "-1",
+          "value": "-2.25",
           "prior": null
         }
       },
@@ -117,21 +135,39 @@
           "prior": null
         }
       },
+      "unemployment_rate": {
+        "2022 Q3": {
+          "value": "3.7",
+          "prior": "3.5"
+        },
+        "2023 Q3": {
+          "value": "4.4",
+          "prior": "4.1"
+        },
+        "2024 Q3": {
+          "value": "5.5",
+          "prior": "4.8"
+        },
+        "2025 Q3": {
+          "value": "6.3",
+          "prior": null
+        }
+      },
       "output_gap": {
         "2022 Q3": {
           "value": "0.75",
-          "prior": null
+          "prior": "0.25"
         },
         "2023 Q3": {
-          "value": "0.25",
-          "prior": null
+          "value": "-2.25",
+          "prior": "-1.5"
         },
         "2024 Q3": {
-          "value": "-2",
-          "prior": null
+          "value": "-3.25",
+          "prior": "-2"
         },
         "2025 Q3": {
-          "value": "0.25",
+          "value": "-3.75",
           "prior": null
         }
       },
@@ -195,21 +231,39 @@
           "prior": null
         }
       },
+      "unemployment_rate": {
+        "2022 Q4": {
+          "value": "3.7",
+          "prior": "3.7"
+        },
+        "2023 Q4": {
+          "value": "4.9",
+          "prior": "4.7"
+        },
+        "2024 Q4": {
+          "value": "5.9",
+          "prior": "5.7"
+        },
+        "2025 Q4": {
+          "value": "6.4",
+          "prior": null
+        }
+      },
       "output_gap": {
         "2022 Q4": {
           "value": "0.75",
           "prior": "-0.25"
         },
         "2023 Q4": {
-          "value": "-2",
-          "prior": null
+          "value": "-2.5",
+          "prior": "-2.5"
         },
         "2024 Q4": {
-          "value": "0.5",
-          "prior": null
+          "value": "-3",
+          "prior": "-3.25"
         },
         "2025 Q4": {
-          "value": "-2",
+          "value": "-3",
           "prior": null
         }
       },
@@ -273,18 +327,36 @@
           "prior": null
         }
       },
+      "unemployment_rate": {
+        "2023 Q1": {
+          "value": "3.8",
+          "prior": "3.8"
+        },
+        "2024 Q1": {
+          "value": "4.4",
+          "prior": "5.2"
+        },
+        "2025 Q1": {
+          "value": "5.0",
+          "prior": "6.0"
+        },
+        "2026 Q1": {
+          "value": "5.3",
+          "prior": null
+        }
+      },
       "output_gap": {
         "2023 Q1": {
           "value": "0",
           "prior": "-0.25"
         },
         "2024 Q1": {
-          "value": "-1",
-          "prior": null
+          "value": "-1.5",
+          "prior": "-2.5"
         },
         "2025 Q1": {
-          "value": "0.5",
-          "prior": null
+          "value": "-2",
+          "prior": "-3"
         },
         "2026 Q1": {
           "value": "-2",
@@ -351,6 +423,24 @@
           "prior": null
         }
       },
+      "unemployment_rate": {
+        "2023 Q2": {
+          "value": "3.8",
+          "prior": "4.1"
+        },
+        "2024 Q2": {
+          "value": "3.9",
+          "prior": "4.6"
+        },
+        "2025 Q2": {
+          "value": "4.3",
+          "prior": "5.1"
+        },
+        "2026 Q2": {
+          "value": "4.5",
+          "prior": null
+        }
+      },
       "output_gap": {
         "2023 Q2": {
           "value": "0.25",
@@ -358,14 +448,14 @@
         },
         "2024 Q2": {
           "value": "-0.5",
-          "prior": null
+          "prior": "-1.75"
         },
         "2025 Q2": {
           "value": "-1",
-          "prior": null
+          "prior": "-2.25"
         },
         "2026 Q2": {
-          "value": "0.75",
+          "value": "-1",
           "prior": null
         }
       },
@@ -429,6 +519,24 @@
           "prior": null
         }
       },
+      "unemployment_rate": {
+        "2023 Q3": {
+          "value": "4.1",
+          "prior": "3.8"
+        },
+        "2024 Q3": {
+          "value": "4.3",
+          "prior": "3.9"
+        },
+        "2025 Q3": {
+          "value": "4.8",
+          "prior": "4.4"
+        },
+        "2026 Q3": {
+          "value": "4.8",
+          "prior": null
+        }
+      },
       "output_gap": {
         "2023 Q3": {
           "value": "0.5",
@@ -439,12 +547,12 @@
           "prior": "-0.75"
         },
         "2025 Q3": {
-          "value": "-1",
-          "prior": null
+          "value": "-1.25",
+          "prior": "-1"
         },
         "2026 Q3": {
-          "value": "0.25",
-          "prior": "-1"
+          "value": "-1.5",
+          "prior": null
         }
       },
       "bank_rate": {
@@ -535,11 +643,11 @@
           "prior": "-0.75"
         },
         "2025 Q4": {
-          "value": "-1",
-          "prior": null
+          "value": "-1.5",
+          "prior": "-1.5"
         },
         "2026 Q4": {
-          "value": "0.5",
+          "value": "-1.5",
           "prior": null
         }
       },
@@ -632,10 +740,10 @@
         },
         "2026 Q1": {
           "value": "-1",
-          "prior": null
+          "prior": "-1.5"
         },
         "2027 Q1": {
-          "value": "-1",
+          "value": "-0.75",
           "prior": null
         }
       },
@@ -727,12 +835,12 @@
           "prior": "-0.75"
         },
         "2026 Q2": {
-          "value": "-1",
-          "prior": null
+          "value": "-1.25",
+          "prior": "-1"
         },
         "2027 Q2": {
-          "value": "0.25",
-          "prior": "-1"
+          "value": "-1",
+          "prior": null
         }
       },
       "bank_rate": {
@@ -823,11 +931,11 @@
           "prior": "-1"
         },
         "2026 Q3": {
-          "value": "-1",
-          "prior": null
+          "value": "-1.25",
+          "prior": "-1.25"
         },
         "2027 Q3": {
-          "value": "0.25",
+          "value": "-0.75",
           "prior": null
         }
       },
@@ -916,14 +1024,14 @@
         },
         "2025 Q4": {
           "value": "-0.25",
-          "prior": null
+          "prior": "-1.25"
         },
         "2026 Q4": {
-          "value": "-1",
-          "prior": null
+          "value": "-0.5",
+          "prior": "-1"
         },
         "2027 Q4": {
-          "value": "0.25",
+          "value": "-0.25",
           "prior": null
         }
       },
