@@ -62,6 +62,15 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
 SITEMAP_URL = "https://www.bankofengland.co.uk/sitemap/monetary-policy-report"
+
+# Les rapports antérieurs à mai 2022 sont bloqués par la protection anti-bot du
+# site (Akamai) : la page reçue ne contient pas le contenu réel de l'article,
+# quelle que soit la structure recherchée. Testé et confirmé sur plusieurs
+# rapports 2019-2022. On se limite donc par défaut à la période qui fonctionne
+# de façon fiable ; quelques rapports isolés dans cette période peuvent encore
+# échouer ponctuellement (même protection, de façon intermittente) -- le
+# script les ignore proprement et continue avec les suivants.
+MIN_SUPPORTED_PERIOD = "2022-05"
 BASE_URL = "https://www.bankofengland.co.uk"
 
 HEADERS = {
@@ -91,7 +100,7 @@ FRACTIONS = {"¼": "0.25", "½": "0.5", "¾": "0.75"}
 # Nombre : entier/décimal classique, ou fraction unicode, avec signe optionnel.
 _NUM_CORE = r"(?:\d+\.?\d*|[¼½¾])"
 NUM_RE = re.compile(rf"(-?{_NUM_CORE})(?:\s*\((-?{_NUM_CORE})\))?")
-YEAR_Q1_RE = re.compile(r"(\d{4})\s*Q1")
+YEAR_Q_RE = re.compile(r"\d{4}\s*Q[1-4]")
 
 
 @dataclass
@@ -119,8 +128,9 @@ def fetch(url: str, cache_dir: Optional[Path] = None) -> str:
     return html
 
 
-def discover_reports(cache_dir: Optional[Path] = None) -> list[tuple[str, str]]:
-    """Retourne une liste de (date AAAA-MM, url) pour chaque rapport trouvé."""
+def discover_reports(cache_dir: Optional[Path] = None, min_period: str = MIN_SUPPORTED_PERIOD) -> list[tuple[str, str]]:
+    """Retourne une liste de (date AAAA-MM, url) pour chaque rapport trouvé,
+    à partir de min_period (voir MIN_SUPPORTED_PERIOD)."""
     html = fetch(SITEMAP_URL, cache_dir=cache_dir)
     seen = {}
     for m in REPORT_LINK_RE.finditer(html):
@@ -134,6 +144,8 @@ def discover_reports(cache_dir: Optional[Path] = None) -> list[tuple[str, str]]:
         if not month_num:
             continue
         date = f"{year}-{month_num}"
+        if min_period and date < min_period:
+            continue
         seen[date] = (date, BASE_URL + path)
 
     if not seen:
@@ -163,18 +175,25 @@ def parse_table_1a(html: str) -> tuple[dict, list[str]]:
     plain = re.sub(r"<[^>]+>", "", html)
     plain = html_module.unescape(plain)
 
-    start_marker = "Table 1.A"
-    start = plain.find(start_marker)
-    if start == -1:
-        raise ValueError("Table 1.A introuvable sur la page.")
+    # Le numéro du tableau ("Table 1.A", "Table 3.A"...) varie selon l'édition
+    # (nombre de sections différent en amont) -- on cherche son titre, stable
+    # d'une édition à l'autre, plutôt que son numéro.
+    start_match = re.search(r"Table\s+\d+\.[A-Z]\s*:\s*Forecast summary", plain)
+    if start_match is None:
+        raise ValueError("Table 'Forecast summary' introuvable sur la page.")
+    start = start_match.start()
 
     # La section utile se termine avant les notes de bas de page (qui commencent
     # par "Footnotes") ou, à défaut, avant le prochain grand tableau ("Table 1.B").
-    end_candidates = [plain.find(m, start) for m in ("Footnotes", "Table 1.B") if plain.find(m, start) != -1]
+    next_table_match = re.search(r"Table\s+\d+\.[A-Z]\s*:", plain[start_match.end():])
+    end_candidates = [plain.find("Footnotes", start)]
+    if next_table_match:
+        end_candidates.append(start_match.end() + next_table_match.start())
+    end_candidates = [c for c in end_candidates if c != -1]
     end = min(end_candidates) if end_candidates else start + 2000
     section = plain[start:end]
 
-    years = YEAR_Q1_RE.findall(section)
+    years = [re.sub(r"\s+", " ", y) for y in YEAR_Q_RE.findall(section)]
     years = list(dict.fromkeys(years))  # dédoublonne en gardant l'ordre
     if not years:
         raise ValueError("Années introuvables dans la Table 1.A.")
@@ -247,7 +266,7 @@ def write_csv(reports: list[BoeReport], out_path: Path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["report_date", "variable", "year_q1", "value", "prior_report_value"])
+        writer.writerow(["report_date", "variable", "period", "value", "prior_report_value"])
         for r in reports:
             for var_key, var_data in r.table.items():
                 for year, vals in var_data.items():
@@ -303,7 +322,11 @@ def write_xlsx(reports: list[BoeReport], out_path: Path) -> None:
     for r in reports:
         for var_data in r.table.values():
             years.update(var_data.keys())
-    years_sorted = sorted(years, key=lambda y: int(y))
+    def _period_sort_key(period: str) -> tuple[int, int]:
+        y, q = period.split(" Q")
+        return int(y), int(q)
+
+    years_sorted = sorted(years, key=_period_sort_key)
 
     var_keys = [k for k, _ in ROW_LABELS]
 
@@ -318,7 +341,7 @@ def write_xlsx(reports: list[BoeReport], out_path: Path) -> None:
     for var_key in var_keys:
         start_col = col
         for year in years_sorted:
-            c = ws.cell(row=2, column=col, value=f"{year} Q1")
+            c = ws.cell(row=2, column=col, value=year)
             _xlsx_style_header(c, _XLSX_SUBHEADER_FILL, _XLSX_SUBHEADER_FONT)
             col += 1
         if col == start_col:
